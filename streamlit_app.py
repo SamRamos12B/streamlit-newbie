@@ -30,8 +30,13 @@ st.write(
 
 st.title("🎈 Streamlit App")
 
+st.write('Es importante verificar la versión sobre la que están construidos los modelos, de otra forma estos\
+         no funcionarán en la app.')
+
 st.write("XGBoost version:", xgb.__version__)
 st.write("Scikit-learn version:", sklearn.__version__)
+
+st.write('Exploremos algunas opciones que nos ofrece streamlit.')
 
 @st.cache_data
 def read_data():
@@ -71,21 +76,57 @@ def predict_data(data):
     data['price_prediction'] = loaded_model.predict(x)
     return data
 
+@st.cache_data
+def predict_values(values_array, cols):
+    # load the model from disk
+    x = pd.DataFrame([values_array], columns=cols)
+    loaded_model = pickle.load(open('./pipeline_xgb.sav', 'rb'))
+    prediction = loaded_model.predict(x)
+    return prediction[0]
+
+#===============SIDEBAR===============
+sidebar = st.sidebar
+sidebar.header('Sección de Filtros')
+
+carat = sidebar.number_input('Valor de carat', value = 0.21)
+cut = sidebar.number_input('Valor de cut', value = 3,step = 1)
+color = sidebar.number_input('Valor de color', value = 1, step = 1)
+clarity = sidebar.number_input('Valor de clarity', value = 2, step = 1)
+depth = sidebar.number_input('Valor de depth', value = 59.8)
+table = sidebar.number_input('Valor de table', value = 61)
+x = sidebar.number_input('Valor de x', value = 3.89)
+y = sidebar.number_input('Valor de y', value = 3.84)
+z = sidebar.number_input('Valor de z', value = 2.31)
+
+valores_input = [carat, cut, color, clarity, depth, table, x, y, z]
+#=====================================
+
 df = read_data()
 clean_df = clean_data(df)
 label_df = label_data(clean_df)
 predict_df = predict_data(label_df)
+predict_df['cut_cat'] = clean_df['cut']
+predict_df['color_cat'] = clean_df['color']
+predict_df['clarity_cat'] = clean_df['clarity']
 
-show_clean_df = st.checkbox('Mostrar dataframe limpio', True)
+show_clean_df = st.checkbox('Mostrar dataframe limpio', False)
 if show_clean_df:
     st.write(clean_df)
-show_label_df = st.checkbox('Mostrar dataframe etiquetado', True)
+show_label_df = st.checkbox('Mostrar dataframe etiquetado', False)
 if show_label_df:
     st.write(label_df)
 show_predict_df = st.checkbox('Mostrar dataframe con predicciones', True)
-if show_label_df:
+if show_predict_df:
     st.write(predict_df)
 
-fig = px.scatter(label_df, x="price", y="y", title="Regression Line on Price vs 'y'")
-st.plotly_chart(fig)
+st.header('Predicciones nuevas')
+
+st.write('En esta sección podrás explorar los resultados del modelo ante una nueva predicción basado en los datos\
+         de entrada que le coloques.')
+
+prediccion = predict_values(valores_input, list(label_df.drop(["price"],axis =1).columns))
+st.write(prediccion)
+
+# fig = px.scatter(label_df, x="price", y="y", title="Regression Line on Price vs 'y'")
+# st.plotly_chart(fig)
 
