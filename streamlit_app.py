@@ -127,6 +127,6 @@ st.write('En esta sección podrás explorar los resultados del modelo ante una n
 prediccion = predict_values(valores_input, list(label_df.drop(["price"],axis =1).columns))
 st.write(prediccion)
 
-# fig = px.scatter(label_df, x="price", y="y", title="Regression Line on Price vs 'y'")
-# st.plotly_chart(fig)
+fig = px.scatter(label_df, x="price", y="y", title="Regression Line on Price vs 'y'")
+st.plotly_chart(fig)
 
